@@ -163,29 +163,7 @@ def actor_to_actor_path(transformed_data, actor_id_1, actor_id_2):
     """
     Copy of bacon_path, except set all instances of 4724 to actor_id_1 instead
     """
-    if actor_id_1 == actor_id_2:
-        return [actor_id_1]
-
-    elif actor_id_1 not in transformed_data.keys() or actor_id_2 not in transformed_data.keys():
-        return None
-
-    else:
-        visited = {actor_id_1}
-        agenda = [[actor_id_1,]]
-
-        while not agenda == []:
-            current_path = agenda.pop(0)
-
-            for neighbor in acted_with(transformed_data, current_path[-1]):
-                if neighbor == actor_id_2:
-                    path = current_path + [neighbor]
-                    return path
-                else:
-                    if neighbor not in visited:
-                        new_path = current_path + [neighbor]
-                        agenda.append(new_path)
-                        visited.add(neighbor)
-        return None
+    return actor_path(transformed_data, actor_id_1, lambda p: p == actor_id_2)
 
 
 
