@@ -61,43 +61,65 @@ def transform_data(raw_data):
     """
     Assume input is list of tuples (Actor ID 1, Actor ID 2, Movie ID)
 
-    We will return data structure of a dictionary where key is each actor ID, value is set of actors who have directly
-    acted with that actor
+    We will return (in a tuple) 3 data structures that are each needed to most efficient complete different functions. 
 
-    This makes it easy to access neighbors, which is an operation we use a lot later
+    Structure 1:
+        We will return data structure of a dictionary where key is each actor ID, value is set of actors who have directly
+        acted with that actor
+
+        This makes it easy to access neighbors, which is an operation we use a lot later
+
+    Structure 2:
+        A dictionary where movies are keys, values are sets of actors in that movie
+        This is needed for getting the film 1 to film 2 actor path, where we need to loop over all actors in a movie
+
+    Structure 3:
+        A dictionary where key is pair of actors, value is the movie they acted together in.
+        This is needed for taking two connected actors and getting the movie that is their connection
     """
-    transformed_data = {}
-
+    transformed_data_1 = {}
     #initializing empty set for all actors
     for data in raw_data:
-        transformed_data[data[0]] = set()
-        transformed_data[data[1]] = set()
-
+        transformed_data_1[data[0]] = set()
+        transformed_data_1[data[1]] = set()
     #creating enighbor mapping
     for data in raw_data:
-        transformed_data[data[0]].add(data[1])
-        transformed_data[data[1]].add(data[0])
+        transformed_data_1[data[0]].add(data[1])
+        transformed_data_1[data[1]].add(data[0])
+
+    transformed_data_2 = {}
+    for data in raw_data:
+        transformed_data_2[data[2]] = set()
+    for data in raw_data:
+        transformed_data_2[data[2]].add(data[0])
+        transformed_data_2[data[2]].add(data[1])
+
+    transformed_data_3 = {}
+    for data in raw_data:
+        transformed_data_3[(data[0], data[1])] = data[2]
     
-    return transformed_data
+    return (transformed_data_1, transformed_data_2, transformed_data_3)
 
 
-def acted_together(neighbor_map, actor_id_1, actor_id_2):
-    if actor_id_1 not in neighbor_map.keys() or actor_id_2 not in neighbor_map.keys():
+def acted_together(transformed_data, actor_id_1, actor_id_2):
+    if actor_id_1 not in transformed_data[0].keys() or actor_id_2 not in transformed_data[0].keys():
         return False
     
-    return (actor_id_2 in neighbor_map[actor_id_1])
+    return (actor_id_2 in transformed_data[0][actor_id_1])
 
-def acted_with(neighbor_map, actor_1):
+def acted_with(transformed_data, actor_1):
     """
     Return a set of all actors who have acted with the given actor
     """
-    return (neighbor_map[actor_1])
+    return (transformed_data[0][actor_1])
 
-def actors_with_bacon_number(neighbor_map, num):
+def actors_with_bacon_number(transformed_data, num):
     """
     We will loop through past nums and go layer by layer, and use dict to store past results
     Note: Do NOT use recursion here because it will lead to repeated calls and O(2^n) time complexity
     """
+    adjacency_list = transformed_data[0]
+    
     if num == 0:
         return {4724}
 
@@ -109,7 +131,7 @@ def actors_with_bacon_number(neighbor_map, num):
         for n in range(1, num+1):
             past_recursions[n] = set()
             for last_actor in past_recursions[n-1]:
-                for actor in acted_with(neighbor_map, last_actor) - visited:
+                for actor in acted_with(transformed_data, last_actor) - visited:
                     past_recursions[n].add(actor)
                     visited.add(actor)
             if len(past_recursions[n]) == 0:
@@ -118,10 +140,12 @@ def actors_with_bacon_number(neighbor_map, num):
         return past_recursions[num]
 
 def bacon_path(transformed_data, actor_id):
+    adjacency_list = transformed_data[0]
+    
     if actor_id == 4724:
         return [4724]
 
-    elif actor_id not in transformed_data.keys():
+    elif actor_id not in adjacency_list.keys():
         return None
 
     else:
@@ -171,10 +195,12 @@ def actor_path(transformed_data, actor_id_1, goal_test_function):
     """
     Copy of actor_to_actor_path, but replace neighbor==actor_id_2 goal check with our given goal test function
     """
+    adjacency_list = transformed_data[0]
+    
     if goal_test_function(actor_id_1):
         return [actor_id_1]
 
-    elif actor_id_1 not in transformed_data.keys():
+    elif actor_id_1 not in adjacency_list.keys():
         return None
 
     else:
@@ -197,7 +223,24 @@ def actor_path(transformed_data, actor_id_1, goal_test_function):
 
 
 def actors_connecting_films(transformed_data, film1, film2):
-    raise NotImplementedError("Implement me!")
+    movie_cast = transformed_data[1]
+    adjacency_list = transformed_data[0]
+
+    if film1 not in movie_cast.keys() or film2 not in movie_cast.keys():
+        return None
+
+    current_min_path = [0] * 100
+    
+    for actor in movie_cast[film1]:
+        new_path = actor_path(transformed_data, actor, lambda p: p in movie_cast[film2])
+        if new_path and len(new_path) < len(current_min_path):
+            current_min_path = new_path
+
+    if current_min_path == [0] * 100:
+        return None
+    else:
+        return current_min_path
+        
 
 
 if __name__ == "__main__":
@@ -219,7 +262,11 @@ if __name__ == "__main__":
 
     transformed_largedb = transform_data(largedb)
 
-    print(tinydb)
+    print(transformed_tinydb[0])
+    print(transformed_tinydb[1])
+    print(transformed_tinydb[2])
+
+    #print(tinydb)
 
     #print(bacon_path(transformed_tinydb, 1640))
     
