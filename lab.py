@@ -31,6 +31,17 @@ def ID_to_name(ID):
     for key, val in namesdb.items():
         if val == ID:
             return(key)
+
+def movie_ID_to_name(ID):
+    """
+    Takes in ID of movie as int, return name of movie with that ID as string
+    """
+    with open("resources/movies.pickle", "rb") as f:
+        moviesdb = pickle.load(f)
+
+    for key, val in moviesdb.items():
+        if val == ID:
+            return(key)
     
 
 #LAB FUNCTIONS
@@ -97,6 +108,7 @@ def transform_data(raw_data):
     transformed_data_3 = {}
     for data in raw_data:
         transformed_data_3[(data[0], data[1])] = data[2]
+        transformed_data_3[(data[1], data[0])] = data[2]
     
     return (transformed_data_1, transformed_data_2, transformed_data_3)
 
@@ -240,6 +252,14 @@ def actors_connecting_films(transformed_data, film1, film2):
         return None
     else:
         return current_min_path
+
+def film_connecting_actors(transformed_data, actor_1, actor_2):
+    actor_path = actor_to_actor_path(transformed_data, actor_1, actor_2)
+    movie_path = []
+    connecting_movies = transformed_data[2]
+    for index in range(len(actor_path)-1):
+        movie_path.append(movie_ID_to_name(connecting_movies[(actor_path[index], actor_path[index+1])]))
+    return movie_path
         
 
 
@@ -262,9 +282,16 @@ if __name__ == "__main__":
 
     transformed_largedb = transform_data(largedb)
 
-    print(transformed_tinydb[0])
-    print(transformed_tinydb[1])
-    print(transformed_tinydb[2])
+    #print(acted_together(transformed_largedb, 64722, 105288))
+
+    #print(film_connecting_actors(transformed_largedb, name_to_ID("Marc Macaulay"), name_to_ID("Sven Batinic")))
+
+    with open("resources/movies.pickle", "rb") as f:
+        moviedb = pickle.load(f)
+
+    #print(transformed_tinydb[0])
+    #print(transformed_tinydb[1])
+    #print(transformed_tinydb[2])
 
     #print(tinydb)
 
