@@ -158,12 +158,64 @@ def bacon_path(transformed_data, actor_id):
 
         return None
 
+
 def actor_to_actor_path(transformed_data, actor_id_1, actor_id_2):
-    raise NotImplementedError("Implement me!")
+    """
+    Copy of bacon_path, except set all instances of 4724 to actor_id_1 instead
+    """
+    if actor_id_1 == actor_id_2:
+        return [actor_id_1]
+
+    elif actor_id_1 not in transformed_data.keys() or actor_id_2 not in transformed_data.keys():
+        return None
+
+    else:
+        visited = {actor_id_1}
+        agenda = [[actor_id_1,]]
+
+        while not agenda == []:
+            current_path = agenda.pop(0)
+
+            for neighbor in acted_with(transformed_data, current_path[-1]):
+                if neighbor == actor_id_2:
+                    path = current_path + [neighbor]
+                    return path
+                else:
+                    if neighbor not in visited:
+                        new_path = current_path + [neighbor]
+                        agenda.append(new_path)
+                        visited.add(neighbor)
+        return None
+
 
 
 def actor_path(transformed_data, actor_id_1, goal_test_function):
-    raise NotImplementedError("Implement me!")
+    """
+    Copy of actor_to_actor_path, but replace neighbor==actor_id_2 goal check with our given goal test function
+    """
+    if goal_test_function(actor_id_1):
+        return [actor_id_1]
+
+    elif actor_id_1 not in transformed_data.keys():
+        return None
+
+    else:
+        visited = {actor_id_1}
+        agenda = [[actor_id_1,]]
+
+        while not agenda == []:
+            current_path = agenda.pop(0)
+
+            for neighbor in acted_with(transformed_data, current_path[-1]):
+                if goal_test_function(neighbor):
+                    path = current_path + [neighbor]
+                    return path
+                else:
+                    if neighbor not in visited:
+                        new_path = current_path + [neighbor]
+                        agenda.append(new_path)
+                        visited.add(neighbor)
+        return None
 
 
 def actors_connecting_films(transformed_data, film1, film2):
@@ -189,11 +241,16 @@ if __name__ == "__main__":
 
     transformed_largedb = transform_data(largedb)
 
-    #print(bacon_path(transformed_tinydb, 1640))
+    print(tinydb)
 
-    print(bacon_path(transformed_smalldb, ))
+    #print(bacon_path(transformed_tinydb, 1640))
     
-    #print(bacon_path(transformed_largedb, name_to_ID("Cecile Arnold")))
+    #output = bacon_path(transformed_largedb, name_to_ID("Cecile Arnold"))
+
+    #output = actor_to_actor_path(transformed_largedb, name_to_ID("Marcella Daly"), name_to_ID("Sandra Bullock"))
+
+    #for actor in output:
+    #    print("\"", ID_to_name(actor), "\"")
 
     #print(actors_with_bacon_number(transformed_largedb, 6))
 
