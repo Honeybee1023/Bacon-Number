@@ -125,29 +125,38 @@ def bacon_path(transformed_data, actor_id):
         return None
 
     else:
-        visited = set()
-        agenda = [(4724,)]
-        agenda_index = 0
-        goal = False
+        #BFS , start by setting up visited and agenda
+        visited = {4724}
+            #^We only need to visit each node once, not each path once.
+            #This is because with bfs, everytime we visit a node we reach there through the shortest path already
+            #So we don't need to try to visit this node through another path, we just keep going from there
+                # ! - This will not hold when we have edge weights involved!
+        agenda = [[4724,]]
+            #pop(0) for a list takes O(n) time because we need to shift everything after
+            #So technically a FIFO like queue (or deck in python) is better
+            #But here it doesn't matter too much (like by 2 secs), plus we cannot import
 
-        while not goal:
-            current_path = agenda[agenda_index]
-            agenda_index += 1
-            visited.add(current_path)
+        #Keep looping, with empty agenda as exit condition (we've tried our best but found no path)
+        while not agenda == []:
+            #Take out the first item in our queue and visit it
+            current_path = agenda.pop(0)
 
+            #Explore all its neighbors
             for neighbor in acted_with(transformed_data, current_path[-1]):
-                #print(current[-1], " has neighbor", neighbor)
+                #If we've reached our goal already then just return this good path
                 if neighbor == actor_id:
-                    path = list(current_path) + [neighbor]
+                    path = current_path + [neighbor]
                     return path
+                #Otherwise add new path with this neighbor if we haven't tried visiting this neighbor yet
                 else:
-                    new_path = current_path + (neighbor,)
-                    if new_path not in visited:
+                    if neighbor not in visited:
+                        new_path = current_path + [neighbor]
                         agenda.append(new_path)
+                        visited.add(neighbor)
+                            #Better to mark as visited right after adding to queue rather after popping from queue
+                            #because we mark as visited sooner, thus avoid repetition within looping over neighbors
 
-            if agenda == []:
-                return None
-
+        return None
 
 def actor_to_actor_path(transformed_data, actor_id_1, actor_id_2):
     raise NotImplementedError("Implement me!")
