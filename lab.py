@@ -121,22 +121,27 @@ def bacon_path(transformed_data, actor_id):
     if actor_id == 4724:
         return [4724]
 
+    elif actor_id not in transformed_data.keys():
+        return None
+
     else:
         visited = set()
         agenda = [(4724,)]
+        agenda_index = 0
         goal = False
 
         while not goal:
-            current = agenda.pop(0)
-            visited.add(current)
+            current_path = agenda[agenda_index]
+            agenda_index += 1
+            visited.add(current_path)
 
-            for neighbor in acted_with(transformed_data, current[-1]):
+            for neighbor in acted_with(transformed_data, current_path[-1]):
                 #print(current[-1], " has neighbor", neighbor)
                 if neighbor == actor_id:
-                    path = list(current) + [neighbor]
+                    path = list(current_path) + [neighbor]
                     return path
                 else:
-                    new_path = current + (neighbor,)
+                    new_path = current_path + (neighbor,)
                     if new_path not in visited:
                         agenda.append(new_path)
 
