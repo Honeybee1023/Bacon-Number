@@ -165,7 +165,7 @@ def state_path_to_move_path(state_path):
             (0, 1): "right"
             }
     
-    for index in range(state_path-1):
+    for index in range(len(state_path)-1):
         move_vector = tuple(x-y for (x, y) in zip(state_path[index+1]["player"], state_path[index]["player"]))
         move_path.append(vect_to_dir[move_vector])
 
@@ -182,6 +182,8 @@ def solve_puzzle(game):
     If the given level cannot be solved, return None. This function should not mutate
     the input game.
     """
+    if victory_check(game):
+        return []
     
     visited = {(game["player"], frozenset(game["target"]), frozenset(game["computer"]))}
     agenda = [(game, )]
@@ -197,7 +199,7 @@ def solve_puzzle(game):
                     return state_path_to_move_path(new_path)
                 else:
                     agenda.append(new_path)
-                    visited.append((neighbor["player"], frozenset(neighbor["target"]), frozenset(neighbor["computer"])))
+                    visited.add((neighbor["player"], frozenset(neighbor["target"]), frozenset(neighbor["computer"])))
 
     return None
 
